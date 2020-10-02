@@ -1,0 +1,67 @@
+#!/usr/bin/python3
+
+import json
+import yaml
+import requests
+
+with open("configuration.yaml", "r") as ymlfile:
+    configfile = yaml.safe_load(ymlfile)
+
+AuthEmail = configfile['cfauth']['AuthEmail']
+AuthKey = configfile['cfauth']['AuthKey']
+ContentType = configfile['cfauth']['ContentType']
+getcookie = configfile['cfauth']['getcookie']
+putcookie = configfile['cfauth']['putcookie']
+zone = configfile['cfauth']['zone']
+dnsrecordid = configfile['cfauth']['dnsrecordid']
+payloadname = configfile['cfauth']['payloadname']
+
+### update function to update CloudFlare with new IP
+def updatedns():
+	
+	url = "https://api.cloudflare.com/client/v4/zones/"+zone+"/dns_records/"+dnsrecordid+""
+	
+	payload = "{\n  \"type\":\"A\",\n  \"name\":\""+payloadname+"\",\n  \"content\":\""+newip.strip()+"\",\n  \n  \"ttl\":120,\n  \"proxied\":true\n}"
+	headers = {
+	'X-Auth-Email': AuthEmail,
+	'X-Auth-Key': AuthKey,
+	'Content-Type': ContentType,
+	'Cookie': putcookie
+	}
+	
+	response = requests.request("PUT", url, headers=headers, data = payload)
+	
+	print(response.text.encode('utf8'))
+	
+### get the old CloudFlare (current updated) IP
+url = "https://api.cloudflare.com/client/v4/zones/"+zone+"/dns_records/"+dnsrecordid+""
+
+payload = {}
+headers = {
+  'X-Auth-Email': AuthEmail,
+  'X-Auth-Key': AuthKey,
+  'Content-Type': ContentType,
+  'Cookie': getcookie
+}
+
+response = requests.request("GET", url, headers=headers, data = payload)
+#print(response.text.encode('utf8'))
+
+###
+result = json.loads(response.text)
+#print(result)
+
+oldip = result['result']['content']
+#print(oldip)
+
+### compare CloudFlare IP with fresh fetched IP, and if not identical then update
+newip = requests.get("https://ipinfo.io/ip").text
+
+print(newip.strip())
+if newip.strip() == oldip:
+	print ("IP unchanged, it is still", oldip)
+else:
+	print ('IP changed to', newip.strip(), 'updating CloudFlare DNS A record with new IP...')
+	updatedns()
+
+### 
