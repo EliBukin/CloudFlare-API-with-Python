@@ -1,0 +1,9 @@
+cfauth:
+    AuthEmail: AUTH-EMAIL
+    AuthKey: AUTH-KEY
+    ContentType: application/json
+    getcookie: GET-COOKIE
+    putcookie: PUT-COOKIE
+    zone: ZONE-ID
+    dnsrecordid: DNS-RECORD-ID
+    payloadname: DOMAIN-NAME
